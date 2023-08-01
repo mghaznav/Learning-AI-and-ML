@@ -11,7 +11,7 @@ class Agent:
         epsilon_decrement: float,
         num_actions: int,
         num_states: int,
-    ):
+    ) -> None:
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Discount Factor
         self.epsilon = epsilon_max  # Using Epsilon greedy for exploration
@@ -22,7 +22,7 @@ class Agent:
 
         self.q_table = np.zeros((self.num_states, self.num_actions))
 
-    def choose_action(self, state):
+    def choose_action(self, state: np.array) -> int:
         # Choosing between explore on exploit using epsilon greedy
         if np.random.random() < self.epsilon:
             action = np.random.choice([i for i in range(self.num_actions)])
@@ -34,7 +34,13 @@ class Agent:
 
         return action
 
-    def update(self, last_state, last_reward, last_action, new_state):
+    def update(
+        self,
+        last_state: np.array,
+        last_reward: float,
+        last_action: int,
+        new_state: np.array,
+    ) -> None:
         actions = np.array(
             [self.q_table[new_state, a] for a in range(self.num_actions)]
         )
