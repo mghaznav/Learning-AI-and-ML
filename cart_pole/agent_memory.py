@@ -1,15 +1,15 @@
 import random
-import torch
-from collections import deque
+from collections import deque, namedtuple
+
+Transition = namedtuple("Transition", ("state", "action", "reward", "new_state"))
 
 
 class AgentMemory:
     def __init__(self, max_size) -> None:
         self.memory = deque([], maxlen=max_size)
 
-    def update(self, transition):
-        self.memory.append(transition)
+    def update(self, *args):
+        self.memory.append(Transition(*args))
 
     def sample(self, batch_size):
-        samples = zip(*random.sample(self.memory, batch_size))
-        return map(lambda x: torch.cat(x, 0), samples)
+        return random.sample(self.memory, batch_size)

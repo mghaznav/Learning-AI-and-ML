@@ -6,13 +6,14 @@ from visualize import plot_learning_curve
 if __name__ == "__main__":
     env = gym.make("CartPole-v1")
 
-    num_games = 10000
+    num_games = 2500
     scores = []
     epsilon = []
 
     agent = Agent(
         0.0001,
         0.99,
+        0.005,
         1.0,
         0.01,
         1e-5,
@@ -28,16 +29,21 @@ if __name__ == "__main__":
         while not done:
             action = agent.choose_action(obs)
             new_obs, reward, terminated, truncated, info = env.step(action)
+            done = terminated or truncated
             score += reward
+
+            # If terminated, set next state to None
+            if done:
+                new_obs = None
+
             agent.update(obs, reward, action, new_obs)
             obs = new_obs
-            done = terminated or truncated
 
         scores.append(score)
         epsilon.append(agent.epsilon)
 
-        if i % 100 == 0:
-            avg_score = np.mean(scores[-100:])
+        if i % 10 == 0:
+            avg_score = np.mean(scores[-10:])
             print(
                 f"Episode = {i}, Score = {score:.2f}, Average Score = {avg_score:.2f}, Epsilon = {agent.epsilon:.2f}"
             )
