@@ -1,27 +1,45 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import interpolate
 
 
-def plot_learning_curve(x, scores, epsilons, filename):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, label="1")
-    ax2 = fig.add_subplot(111, label="2")
+def plot_learning_curve(scores, epsilons, filename):
+    # Create a smooth curve for Scores
+    smooth_training_steps = np.linspace(1, len(scores), 100)
+    scores_interp = interpolate.interp1d(
+        np.arange(1, len(scores) + 1), scores, kind="cubic"
+    )
+    smooth_scores = scores_interp(smooth_training_steps)
 
-    ax.plot(x, epsilons, color="C0")
-    ax.set_xlabel("Training steps", color="C0")
-    ax.set_ylabel("Epsilon", color="C0")
-    ax.tick_params(axis="x", colors="C0")
-    ax.tick_params(axis="y", colors="C0")
+    # Create a smooth curve for Epsilon values
+    epsilons_interp = interpolate.interp1d(
+        np.arange(1, len(epsilons) + 1), epsilons, kind="cubic"
+    )
+    smooth_epsilon_values = epsilons_interp(smooth_training_steps)
 
-    N = len(scores)
-    running_avg = np.empty(N)
-    for t in range(N):
-        running_avg[t] = np.mean(scores[max(0, t - 100) : (t + 1)])
+    # Plot the data and the curves for averages
+    plt.figure(figsize=(10, 6))
 
-    ax2.scatter(x, running_avg, color="C1")
-    ax2.axes.get_xaxis().set_visible(False)
-    ax2.yaxis.tick_right()
-    ax2.set_ylabel("Score", color="C1")
-    ax2.yaxis.set_label_position("right")
+    # Plot Epsilon values on the left y-axis
+    ax1 = plt.gca()
+    ax1.plot(
+        smooth_training_steps,
+        smooth_epsilon_values,
+        label="Epsilon Values",
+        color="green",
+    )
+    ax1.set_xlabel("Training Steps")
+    ax1.set_ylabel("Epsilon Values", color="green")
+    ax1.tick_params(axis="y", labelcolor="green")
+    ax1.set_ylim(0.0, 1.0)  # Set y-axis limits for Epsilon from 0.0 to 1.0
+
+    # Plot Scores on the right y-axis
+    ax2 = ax1.twinx()
+    ax2.plot(smooth_training_steps, smooth_scores, label="Scores", color="blue")
+    ax2.set_ylabel("Scores", color="blue")
+    ax2.tick_params(axis="y", labelcolor="blue")
+    ax2.set_ylim(0, 500)  # Set y-axis limits for Scores from 0 to 500
+
+    plt.title("Cart Pole DQL Agent Training")
 
     plt.savefig(filename)

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch as T
 from network import Network
@@ -18,7 +19,7 @@ class Agent:
     ) -> None:
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Discount Factor
-        self.tau = tau
+        self.tau = tau  # Update rate
         self.epsilon = epsilon_max  # Using Epsilon greedy for exploration
         self.epsilon_min = epsilon_min
         self.epsilon_decrement = epsilon_decrement
@@ -34,8 +35,8 @@ class Agent:
         self.batch_size = 128
         self.device = self.q_policy.device
 
-    def choose_action(self, observation):
-        # Choosing between explore on exploit using epsilon greedy
+    def choose_action(self, observation: np.array) -> T.int64:
+        # Choosing between explore or exploit using epsilon greedy
         if np.random.random() < self.epsilon:
             action = np.random.choice(self.action_space)
         else:
@@ -46,7 +47,13 @@ class Agent:
 
         return action
 
-    def update(self, last_state, last_reward, last_action, new_state):
+    def update(
+        self,
+        last_state: np.array,
+        last_reward: np.float32,
+        last_action: T.int64,
+        new_state: np.array,
+    ) -> None:
         # Converting data from numpy arrays to tensors
         states = T.tensor(last_state, device=self.device, dtype=T.float).unsqueeze(0)
         actions = T.tensor([last_action], device=self.device)
@@ -77,7 +84,7 @@ class Agent:
         if self.epsilon > self.epsilon_min:
             self.epsilon -= self.epsilon_decrement
 
-    def learn(self):
+    def learn(self) -> None:
         if len(self.memory.memory) < self.batch_size:
             return
 
@@ -116,3 +123,39 @@ class Agent:
         self.q_policy.optimizer.zero_grad()
         loss.backward()
         self.q_policy.optimizer.step()
+
+    def save(self, filename):
+        file_count = self.file_count()
+        T.save(
+            {
+                "policy_state_dict": self.q_policy.state_dict(),
+                "target_state_dict": self.q_target.state_dict(),
+                "policy_optimizer": self.q_policy.optimizer.state_dict(),
+                "target_optimizer": self.q_target.optimizer.state_dict(),
+            },
+            f"./data/{file_count}_{filename}.pth",
+        )
+        return f"{file_count}_{filename}.pth"
+
+    def load(self, filename):
+        if os.path.isfile(f"./data/{filename}.pth"):
+            print("=> loading checkpoint... ")
+            checkpoint = T.load(f"./data/{filename}.pth")
+            self.q_policy.load_state_dict(checkpoint["policy_state_dict"])
+            self.q_policy.optimizer.load_state_dict(checkpoint["policy_optimizer"])
+            self.q_target.load_state_dict(checkpoint["target_state_dict"])
+            self.q_target.optimizer.load_state_dict(checkpoint["target_optimizer"])
+            print("=> checkpoint loaded !")
+        else:
+            print("no checkpoint found...")
+
+    def file_count(self):
+        # folder path
+        dir_path = "./data/"
+        count = 0
+        # Iterate directory
+        for path in os.listdir(dir_path):
+            # check if current path is a file
+            if os.path.isfile(os.path.join(dir_path, path)):
+                count += 1
+        return count

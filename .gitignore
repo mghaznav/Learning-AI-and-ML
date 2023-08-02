@@ -45,6 +45,9 @@ ENV/
 *.pyo
 *.pyd
 
+# AI Models
+*.pth
+
 # macOS Specific
 .DS_Store
 .AppleDouble
