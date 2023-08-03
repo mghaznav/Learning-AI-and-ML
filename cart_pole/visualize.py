@@ -31,14 +31,18 @@ def plot_learning_curve(scores, epsilons, filename):
     ax1.set_xlabel("Training Steps")
     ax1.set_ylabel("Epsilon Values", color="green")
     ax1.tick_params(axis="y", labelcolor="green")
-    ax1.set_ylim(0.0, 1.0)  # Set y-axis limits for Epsilon from 0.0 to 1.0
+    ax1.set_ylim(0.0, 1.1)  # Set y-axis limits for Epsilon from 0.0 to 1.0
 
     # Plot Scores on the right y-axis
     ax2 = ax1.twinx()
     ax2.plot(smooth_training_steps, smooth_scores, label="Scores", color="blue")
     ax2.set_ylabel("Scores", color="blue")
     ax2.tick_params(axis="y", labelcolor="blue")
-    ax2.set_ylim(0, 500)  # Set y-axis limits for Scores from 0 to 500
+    ax2.set_ylim(0, 550)  # Set y-axis limits for Scores from 0 to 550
+
+    # Remove the top spine (border) from both axes
+    ax1.spines["top"].set_visible(False)
+    ax2.spines["top"].set_visible(False)
 
     plt.title("Cart Pole DQL Agent Training")
 
